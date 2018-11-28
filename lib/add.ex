@@ -54,19 +54,14 @@ defmodule Momento.Add do
   when natural?(num) and month + num <= 12,
   do: %DateTime{datetime | month: month + num}
 
-  # Many years worth of months
-  def add(%DateTime{} = datetime, num, :months)
-  when positive?(num) and num > 11
-  do
-    years = floor(num / 12)
-    add(datetime, years, :years) |> add(num - years * 12, :months)
-  end
-
   # Rollover months to the next year
   def add(%DateTime{month: month} = datetime, num, :months)
-  when positive?(num) and month + num > 12,
-  do: add(%DateTime{datetime | month: 1}, 1, :years) |> add(num - month - 1, :months)
-
+  when positive?(num) and month + num > 12
+  do
+    years = div(month + num, 12)
+    months = rem(month + num, 12)
+    add(%DateTime{datetime | month: months}, years, :years)
+  end
 
   # Days
 
@@ -75,15 +70,14 @@ defmodule Momento.Add do
   when natural?(num) and day + num <= days_in_month(month),
   do: %DateTime{datetime | day: day + num}
 
-  # Many months worth of days
-  def add(%DateTime{month: month} = datetime, num, :days)
-  when positive?(num) and num > days_in_month(month),
-  do: add(datetime, 1, :months) |> add(num - days_in_month(month), :days)
-
   # Rollver days to be the next month
   def add(%DateTime{month: month, day: day} = datetime, num, :days)
-  when positive?(num) and day + num > days_in_month(month),
-  do: add(%DateTime{datetime | day: 1}, 1, :months) |> add(num - (days_in_month(month) - day) - 1, :days)
+  when positive?(num) and day + num > days_in_month(month)
+  do
+    months = div(day + num, days_in_month(month))
+    days = rem(day + num, days_in_month(month))
+    add(%DateTime{datetime | day: days}, months, :months)
+  end
 
 
   # Hours
@@ -93,12 +87,12 @@ defmodule Momento.Add do
   when natural?(num) and num + hour < 24,
   do: %DateTime{datetime | hour: num + hour}
 
-  # Many days worth of hours
-  def add(%DateTime{} = datetime, num, :hours)
-  when positive?(num) and num > 24
+  def add(%DateTime{month: day, day: hour} = datetime, num, :days)
+  when positive?(num) and day + num > days_in_month(month)
   do
-    days = floor(num / 24)
-    add(datetime, days, :days) |> add(num - days * 24, :hours)
+    months = div(day + num, days_in_month(month))
+    days = rem(day + num, days_in_month(month))
+    add(%DateTime{datetime | day: days}, months, :months)
   end
 
   # Rollover hours to be the next day

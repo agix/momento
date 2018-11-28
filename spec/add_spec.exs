@@ -33,7 +33,7 @@ defmodule AddSpec do
 
     describe "months" do
       before do
-        {:shared, datetime: %DateTime{Momento.date! | month: 6}}
+        {:shared, datetime: %DateTime{Momento.date! | month: 6}, datetime_high: %DateTime{Momento.date! | month: 12}}
       end
 
       it "should map singular to plural" do
@@ -50,7 +50,7 @@ defmodule AddSpec do
         expect(datetime) |> to(eq shared.datetime)
       end
 
-      it "should add months without rollover" do
+      it "should add months without rollover on low limit months" do
         months = 3
         datetime = Momento.add(shared.datetime, months, :months)
 
@@ -58,12 +58,20 @@ defmodule AddSpec do
         expect(datetime.month) |> to(eq shared.datetime.month + months)
       end
 
+      it "should add months and rollover years on high limit months" do
+        months = 3
+        datetime = Momento.add(shared.datetime_high, months, :months)
+
+        expect(datetime.month) |> to(eq 3)
+        expect(datetime.year) |> to(eq shared.datetime_high.year + 1)
+      end
+
       it "should add months and rollover years" do
         months = 19
         datetime = Momento.add(shared.datetime, months, :months)
 
-        expect(datetime.year) |> to(eq shared.datetime.year + 2)
         expect(datetime.month) |> to(eq 1)
+        expect(datetime.year) |> to(eq shared.datetime.year + 2)
       end
 
       it "should only add years" do
@@ -78,7 +86,7 @@ defmodule AddSpec do
 
     describe "days" do
       before do
-        {:shared, datetime: %DateTime{Momento.date! | month: 6, day: 15}}
+        {:shared, datetime: %DateTime{Momento.date! | month: 6, day: 15}, datetime_high: %DateTime{Momento.date! | month: 6, day: 25}}
       end
 
       it "should map singular to plural" do
@@ -95,12 +103,20 @@ defmodule AddSpec do
         expect(datetime) |> to(eq shared.datetime)
       end
 
-      it "should add days without rollover" do
+      it "should add days without rollover on low limit days" do
         days = 10
         datetime = Momento.add(shared.datetime, days, :days)
 
         expect(datetime.day) |> to(eq shared.datetime.day + days)
         expect(datetime.month) |> to(eq shared.datetime.month)
+      end
+
+      it "should add days and rollover months on high limit days" do
+        days = 10
+        datetime = Momento.add(shared.datetime_high, days, :days)
+
+        expect(datetime.day) |> to(eq 5)
+        expect(datetime.month) |> to(eq shared.datetime.month + 1)
       end
 
       it "should add days and rollover months" do
@@ -124,7 +140,7 @@ defmodule AddSpec do
 
     describe "hours" do
       before do
-        {:shared, datetime: %DateTime{Momento.date! | day: 15, hour: 12}}
+        {:shared, datetime: %DateTime{Momento.date! | day: 15, hour: 12}, datetime_high: %DateTime{Momento.date! | day: 15, hour: 23}}
       end
 
       it "should map singular to plural" do
@@ -141,12 +157,20 @@ defmodule AddSpec do
         expect(datetime) |> to(eq shared.datetime)
       end
 
-      it "should add hours without rollover" do
+      it "should add hours without rollover on low limit hours" do
         hours = 5
         datetime = Momento.add(shared.datetime, hours, :hours)
 
         expect(datetime.hour) |> to(eq shared.datetime.hour + hours)
         expect(datetime.day) |> to(eq shared.datetime.day)
+      end
+
+      it "should add hours and rollover days on high limit hours" do
+        hours = 5
+        datetime = Momento.add(shared.datetime_high, hours, :hours)
+
+        expect(datetime.hour) |> to(eq 4)
+        expect(datetime.day) |> to(eq shared.datetime.day + 1)
       end
 
       it "should add hours and rollover days" do
@@ -168,7 +192,7 @@ defmodule AddSpec do
 
     describe "minutes" do
       before do
-        {:shared, datetime: %DateTime{Momento.date! | hour: 12, minute: 15}}
+        {:shared, datetime: %DateTime{Momento.date! | hour: 12, minute: 15}, datetime_high: %DateTime{Momento.date! | hour: 12, minute: 58}}
       end
 
       it "should map singular to plural" do
@@ -185,12 +209,20 @@ defmodule AddSpec do
         expect(datetime) |> to(eq shared.datetime)
       end
 
-      it "should add minutes without rollover" do
+      it "should add minutes without rollover on low limit minutes" do
         minutes = 30
         datetime = Momento.add(shared.datetime, minutes, :minutes)
 
         expect(datetime.minute) |> to(eq shared.datetime.minute + minutes)
         expect(datetime.hour) |> to(eq shared.datetime.hour)
+      end
+
+      it "should add minutes and rollover hours on high limit minutes" do
+        minutes = 30
+        datetime = Momento.add(shared.datetime_high, minutes, :minutes)
+
+        expect(datetime.minute) |> to(eq 28)
+        expect(datetime.hour) |> to(eq shared.datetime.hour + 1)
       end
 
       it "should add minutes and rollover hours" do
@@ -212,7 +244,7 @@ defmodule AddSpec do
 
     describe "seconds" do
       before do
-        {:shared, datetime: %DateTime{Momento.date! | minute: 15, second: 15}}
+        {:shared, datetime: %DateTime{Momento.date! | minute: 15, second: 15}, datetime_high: %DateTime{Momento.date! | minute: 15, second: 58}}
       end
 
       it "should map singular to plural" do
@@ -229,12 +261,20 @@ defmodule AddSpec do
         expect(datetime) |> to(eq shared.datetime)
       end
 
-      it "should add seconds without rollover" do
+      it "should add seconds without rollover on low limit seconds" do
         seconds = 30
         datetime = Momento.add(shared.datetime, seconds, :seconds)
 
         expect(datetime.second) |> to(eq shared.datetime.second + seconds)
         expect(datetime.minute) |> to(eq shared.datetime.minute)
+      end
+
+      it "should add seconds and rollover minutes on high limit seconds" do
+        seconds = 30
+        datetime = Momento.add(shared.datetime_high, seconds, :seconds)
+
+        expect(datetime.second) |> to(eq 28)
+        expect(datetime.minute) |> to(eq shared.datetime.minute + 1)
       end
 
       it "should add seconds and rollover minutes" do
